@@ -1,0 +1,29 @@
+# Fixed evaluation universe — one ticker per line, blank lines and #comments ignored.
+# Keep this list STABLE across the whole experiment. Changing it mid-run
+# invalidates cross-period comparisons (survivorship / selection bias).
+#
+# NOTE: the default list below is mega-cap-tech-heavy, which is highly
+# correlated. For a real edge test, diversify across uncorrelated sectors
+# (energy, healthcare, financials, staples) so your *effective* sample size
+# is closer to your prediction count. See experiment/README.md.
+
+AAPL
+MSFT
+NVDA
+AMZN
+META
+GOOGL
+TSLA
+AMD
+NFLX
+PLTR
+JPM
+XOM
+UNH
+WMT
+PG
+JNJ
+CAT
+COST
+LLY
+HD
