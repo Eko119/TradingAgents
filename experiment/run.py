@@ -19,7 +19,7 @@ import traceback
 from datetime import date as date_cls
 from pathlib import Path
 
-from experiment import store
+from experiment import cost, store
 from experiment.extract import extract_fields
 
 PRED_DIR = store.PRED_DIR
@@ -61,6 +61,7 @@ def run(run_date: str, symbols, *, dry_run: bool, skip_existing: bool) -> int:
         return 0
 
     # Imported lazily so --dry-run works without deps/keys configured.
+    from langchain_core.callbacks import get_usage_metadata_callback
     from tradingagents.graph.trading_graph import TradingAgentsGraph
     from tradingagents.default_config import DEFAULT_CONFIG
 
@@ -69,13 +70,21 @@ def run(run_date: str, symbols, *, dry_run: bool, skip_existing: bool) -> int:
     config.setdefault("temperature", 0.0)
     ta = TradingAgentsGraph(debug=False, config=config)
 
+    run_cost = 0.0
+    run_in = run_out = 0
     for sym in symbols:
         if skip_existing and store.has_prediction(run_date, sym):
             print(f"  = {sym}: already logged for {run_date}, skipping")
             continue
         try:
             print(f"  > {sym}: running ...", flush=True)
-            final_state, rating = ta.propagate(sym, run_date)
+            with get_usage_metadata_callback() as usage_cb:
+                final_state, rating = ta.propagate(sym, run_date)
+            usage = cost.summarize(usage_cb.usage_metadata)
+            run_cost += usage["cost"] or 0.0
+            run_in += usage["input"]
+            run_out += usage["output"]
+
             report_path = _archive_report(run_date, sym, final_state, rating)
             try:
                 as_of = store.close_on_or_before(sym, run_date)
@@ -88,11 +97,14 @@ def run(run_date: str, symbols, *, dry_run: bool, skip_existing: bool) -> int:
                 "Symbol": sym,
                 "AsOfPrice": "" if as_of is None else round(as_of, 4),
                 "ReportPath": str(report_path.relative_to(store.REPO_ROOT)),
+                "InputTokens": usage["input"],
+                "OutputTokens": usage["output"],
+                "EstCostUSD": "" if usage["cost"] is None else usage["cost"],
                 "Status": "pending",
                 **fields,
             }
             store.append_row(row)
-            print(f"    -> {rating} (score {row['Score']})  saved {row['ReportPath']}")
+            print(f"    -> {rating} (score {row['Score']})  {cost.fmt(usage)}  saved {row['ReportPath']}")
         except Exception as exc:  # keep the batch going; record the failure
             errors += 1
             store.append_row({
@@ -102,6 +114,8 @@ def run(run_date: str, symbols, *, dry_run: bool, skip_existing: bool) -> int:
             print(f"    !! {sym} failed: {type(exc).__name__}: {exc}", file=sys.stderr)
             traceback.print_exc()
 
+    cost_str = f"~${run_cost:.2f}" if run_cost else "$? (set experiment/prices.json)"
+    print(f"\nRun total: {run_in:,} in / {run_out:,} out tokens  {cost_str}")
     return errors
 
 

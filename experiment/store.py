@@ -37,6 +37,9 @@ COLUMNS: List[str] = [
     "TimeHorizon",
     "ThesisSummary",
     "ReportPath",      # relative path to archived full report
+    "InputTokens",     # provider-reported prompt tokens for this prediction
+    "OutputTokens",    # provider-reported completion tokens
+    "EstCostUSD",      # estimated cost from experiment/cost.py price table
     "Status",          # pending | scored | error
     # --- filled later by score.py ---
     "Px_7d", "Ret_7d", "SPY_Ret_7d", "Excess_7d", "BeatSPY_7d", "CallCorrect_7d",

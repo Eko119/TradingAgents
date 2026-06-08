@@ -39,6 +39,33 @@ over-read it.
 `CallCorrect` = the directional call paid off **relative to SPY** (long right
 when excess > 0, short right when excess < 0). Holds are excluded from hit-rate.
 
+## Cost tracking
+
+Every run prints per-symbol and run-total token usage and an estimated cost,
+and logs `InputTokens` / `OutputTokens` / `EstCostUSD` per prediction:
+
+```
+  > AAPL: running ...
+    -> Buy (score 2)  142,310 in / 9,840 out tok  ~$0.0810  saved predictions/2026-06-08/AAPL.md
+  ...
+Run total: 2,840,000 in / 198,000 out tokens  ~$1.74
+```
+
+Token counts are exact (from the provider's `usage_metadata`). **Dollar
+figures are estimates** from a price table — verify them against your
+provider's billing. Update prices without touching code by creating
+`experiment/prices.json` (USD per 1,000,000 tokens):
+
+```json
+{
+  "gpt-5.5":      {"input": 1.25, "output": 10.00},
+  "gpt-5.4-mini": {"input": 0.25, "output": 2.00}
+}
+```
+
+Unknown models still get accurate token counts; their cost shows as
+`$? (price unset)` until you add them.
+
 ## Read the results honestly — five traps this harness tries to keep you out of
 
 1. **Forward test only.** Never run `--date` on a *past* date and call it a
