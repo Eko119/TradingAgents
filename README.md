@@ -120,6 +120,18 @@ Install the package and its dependencies:
 pip install .
 ```
 
+### Development setup
+
+For development, use [`uv`](https://github.com/astral-sh/uv) so you get the exact pinned dependency set from `uv.lock` (this is also what CI runs):
+
+```bash
+make setup   # uv sync — installs runtime + dev dependencies
+make test    # uv run pytest — full suite, offline-safe
+make run     # uv run tradingagents — interactive CLI
+```
+
+Every push and pull request runs the test suite on Python 3.10–3.12 via GitHub Actions (`.github/workflows/ci.yml`).
+
 ### Docker
 
 Alternatively, run with Docker:

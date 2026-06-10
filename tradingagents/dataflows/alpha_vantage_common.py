@@ -1,3 +1,4 @@
+import logging
 import os
 import requests
 import pandas as pd
@@ -5,7 +6,11 @@ import json
 from datetime import datetime
 from io import StringIO
 
+logger = logging.getLogger(__name__)
+
 API_BASE_URL = "https://www.alphavantage.co/query"
+# Without a timeout a stalled connection blocks the whole analysis pipeline.
+REQUEST_TIMEOUT_SECONDS = 30
 
 
 class AlphaVantageNotConfiguredError(ValueError):
@@ -76,7 +81,7 @@ def _make_api_request(function_name: str, params: dict) -> dict | str:
         # Remove entitlement if it's None or empty
         api_params.pop("entitlement", None)
     
-    response = requests.get(API_BASE_URL, params=api_params)
+    response = requests.get(API_BASE_URL, params=api_params, timeout=REQUEST_TIMEOUT_SECONDS)
     response.raise_for_status()
 
     response_text = response.text
@@ -131,5 +136,5 @@ def _filter_csv_by_date_range(csv_data: str, start_date: str, end_date: str) -> 
 
     except Exception as e:
         # If filtering fails, return original data with a warning
-        print(f"Warning: Failed to filter CSV data by date range: {e}")
+        logger.warning("Failed to filter CSV data by date range %s..%s: %s", start_date, end_date, e)
         return csv_data

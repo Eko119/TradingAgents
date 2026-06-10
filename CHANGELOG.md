@@ -6,6 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Breaking changes within the 0.x line are called out explicitly.
 
+## [Unreleased]
+
+### Added
+
+- **CI pipeline.** GitHub Actions workflow running the full test suite on
+  Python 3.10/3.11/3.12 with `uv sync --locked` for every push and PR.
+- **`pytest` as a declared dev dependency.** Previously `uv run pytest`
+  fell through to a system pytest without project packages, making the
+  suite unrunnable from a clean checkout; `uv.lock` was also re-resolved
+  to match `pyproject.toml`.
+- **Makefile** with `setup` / `test` / `test-unit` / `run` / `docker` /
+  `lock-check` targets.
+- Production-readiness audit reports: `REPOSITORY_ANALYSIS.md`,
+  `PRODUCTION_READINESS_PLAN.md`, `TESTING_REPORT.md`,
+  `SECURITY_AUDIT.md`, `RELEASE_READINESS_REPORT.md`.
+
+### Fixed
+
+- **Alpha Vantage requests now carry a 30-second timeout** — a stalled
+  vendor connection previously hung the analysis pipeline indefinitely.
+- **CLI results path is re-validated with `safe_ticker_component`**
+  (defense-in-depth against path traversal independent of prompt
+  validation).
+- The CLI no longer crashes at startup if the `welcome.txt` package asset
+  is missing; it falls back to a plain banner.
+- Previously silent failures are now logged: announcement fetch errors
+  (`cli/announcements.py`), checkpoint-clear SQLite errors
+  (`tradingagents/graph/checkpointer.py`), and Alpha Vantage CSV
+  date-filter failures (now `logging` instead of `print`).
+
 ## [0.2.5] — 2026-05-11
 
 ### Added

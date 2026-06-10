@@ -1,4 +1,5 @@
 import getpass
+import logging
 import requests
 from rich.console import Console
 from rich.panel import Panel
@@ -20,7 +21,10 @@ def fetch_announcements(url: str = None, timeout: float = None) -> dict:
             "announcements": data.get("announcements", [fallback]),
             "require_attention": data.get("require_attention", False),
         }
-    except Exception:
+    except Exception as e:
+        # Announcements are best-effort: fall back gracefully, but leave a
+        # trace so connectivity/SSL problems are diagnosable.
+        logging.getLogger(__name__).debug("Announcement fetch from %s failed: %s", endpoint, e)
         return {
             "announcements": [fallback],
             "require_attention": False,
