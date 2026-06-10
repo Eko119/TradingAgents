@@ -38,6 +38,23 @@ _RSS = "https://www.reddit.com/r/{sub}/search.rss?{qs}"
 # serves this one on both endpoints; the RSS feed accepts it even when the
 # JSON search endpoint 403s, so no browser-spoofing is needed.
 _UA = "tradingagents/0.2 (+https://github.com/TauricResearch/TradingAgents)"
+
+# Defense against hostile XML in the RSS fallback: a legitimate Atom feed
+# never carries a DTD, and DTD entity expansion ("billion laughs") is the
+# only practical attack against ElementTree. Reject DTDs outright and cap
+# the feed size so a malicious or misbehaving response can't exhaust memory.
+_MAX_FEED_BYTES = 5 * 1024 * 1024
+
+
+def _parse_feed_xml(raw: bytes) -> Optional[ET.Element]:
+    """Parse Atom feed bytes defensively; return None when rejected."""
+    if len(raw) > _MAX_FEED_BYTES:
+        logger.warning("Reddit RSS feed exceeds %d bytes; discarding", _MAX_FEED_BYTES)
+        return None
+    if b"<!DOCTYPE" in raw or b"<!ENTITY" in raw:
+        logger.warning("Reddit RSS feed contains a DTD; discarding as suspicious")
+        return None
+    return ET.fromstring(raw)
 _ATOM_NS = {"atom": "http://www.w3.org/2005/Atom"}
 
 # Default subreddits ordered roughly by signal density for ticker-specific
@@ -93,9 +110,11 @@ def _fetch_subreddit_rss(
     req = Request(url, headers={"User-Agent": _UA})
     try:
         with urlopen(req, timeout=timeout) as resp:
-            root = ET.fromstring(resp.read())
+            root = _parse_feed_xml(resp.read(_MAX_FEED_BYTES + 1))
     except (HTTPError, URLError, TimeoutError, ET.ParseError) as exc:
         logger.warning("Reddit RSS fetch failed for r/%s · %s: %s", sub, ticker, exc)
+        return []
+    if root is None:
         return []
 
     posts = []

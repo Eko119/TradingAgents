@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
@@ -25,3 +26,19 @@ jobs:
 
       - name: Run test suite
         run: uv run pytest -q
+
+  # Known-vulnerability scan of the locked dependency tree. Non-blocking:
+  # new CVEs appear independently of code changes and shouldn't fail
+  # unrelated PRs, but the signal stays visible on every run.
+  dependency-audit:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Audit locked dependencies
+        run: |
+          uv export --format requirements-txt --no-emit-project -o /tmp/requirements.txt
+          uvx pip-audit -r /tmp/requirements.txt --disable-pip

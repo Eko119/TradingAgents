@@ -4,6 +4,25 @@
 
 ## Results (actual output)
 
+**Session 2 (verification audit + web console + dependency upgrades):**
+
+```
+uv run pytest
+342 passed, 1 skipped, 7 warnings, 75 subtests passed in 23.21s
+```
+
+Additions: 27 web-console tests (`tests/test_webui_api.py` — live
+ThreadingHTTPServer on an ephemeral port: routing, security headers,
+traversal rejection, key masking, run validation/409s, run-manager
+concurrency and crash semantics) and 3 XML-defense tests in
+`tests/test_reddit_fallback.py`. The same suite also validates the
+dependency upgrades (langgraph 0.4.8→1.1.10, langchain-core→1.4.3) —
+graph compilation, streaming, and checkpoint resume are exercised against
+the new versions. CI execution on GitHub runners is evidenced by workflow
+run `27287600675` (`conclusion: success`).
+
+**Session 1 baseline:**
+
 ```
 uv run pytest
 312 passed, 1 skipped, 7 warnings, 75 subtests passed in 14.10s

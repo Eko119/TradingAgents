@@ -130,7 +130,23 @@ make test    # uv run pytest — full suite, offline-safe
 make run     # uv run tradingagents — interactive CLI
 ```
 
-Every push and pull request runs the test suite on Python 3.10–3.12 via GitHub Actions (`.github/workflows/ci.yml`).
+Every push and pull request runs the test suite on Python 3.10–3.12 via GitHub Actions (`.github/workflows/ci.yml`), plus a non-blocking known-vulnerability audit of the locked dependency tree.
+
+### Web Console
+
+A local, dependency-free web dashboard complements the CLI — browse past
+analyses with rendered reports, launch new runs, inspect the decision log
+and effective configuration:
+
+```bash
+make web      # or: uv run tradingagents-web
+# open http://127.0.0.1:8321
+```
+
+The console binds `127.0.0.1` only (it has no authentication); API keys are
+shown as set/missing booleans and never leave the server process. Analyses
+launched from the console run in isolated subprocesses and persist to the
+same results directory as the CLI.
 
 ### Docker
 

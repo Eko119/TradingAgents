@@ -69,6 +69,20 @@
 - **Solution:** `Makefile` with `setup` / `test` / `run` / `docker` targets (thin wrappers, no new logic).
 - **Validation:** `make test` runs the suite.
 
+## Session 2 — verification audit additions (see VERIFICATION_AUDIT.md)
+
+### [x] S2-01 — Dependency CVE remediation (P1)
+13 locked packages with known CVEs upgraded (urllib3, langgraph 1.x, langchain-core, langsmith, aiohttp, idna, lxml, marshmallow, orjson, protobuf, pyasn1, pygments, python-dotenv); `pip-audit` vs exported lock now clean; non-blocking CI audit job added. Validation: full suite green on upgraded stack.
+
+### [x] S2-02 — XML entity-expansion hardening (P2)
+Reddit RSS fallback: 5 MiB cap + DTD/ENTITY rejection before `ET.fromstring`; 3 regression tests.
+
+### [x] S2-03 — Web Console (revises session-1 "no GUI" decision)
+`webui/` localhost dashboard (results browser, run launcher with subprocess isolation, decision log, settings) — zero new dependencies, 27 tests. See GUI_FEASIBILITY_ANALYSIS.md, DESIGN_SYSTEM.md.
+
+### [ ] S2-04 — Docker image build validation (P1, blocked here)
+No Docker daemon in the validation environment (verified: `docker info` fails); image has never been built. Run `docker build .` + a compose smoke on a Docker-capable host.
+
 ### [ ] P3-02 — Structured JSON logging across agents
 - **Decision:** deferred — rich CLI output is the product surface; converting it wholesale is a feature project, not hardening. Logging added where errors were previously silent (P2-01/02/03).
 

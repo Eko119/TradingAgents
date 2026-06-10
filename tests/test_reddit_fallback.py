@@ -55,8 +55,8 @@ class TestRssFallbackParsing:
                 return self_inner
             def __exit__(self_inner, *a):
                 return False
-            def read(self_inner):
-                return xml_bytes
+            def read(self_inner, size=-1):
+                return xml_bytes if size < 0 else xml_bytes[:size]
         return patch.object(reddit, "urlopen", return_value=_Resp())
 
     def test_parses_atom_entries(self):
@@ -112,3 +112,18 @@ class TestFormatterHandlesRssPosts:
         assert "1234↑" in out
         assert "56c" in out
         assert "via RSS" not in out
+
+
+@pytest.mark.unit
+class TestFeedXmlDefenses:
+    def test_valid_atom_parses(self):
+        root = reddit._parse_feed_xml(_SAMPLE_ATOM.encode())
+        assert root is not None and root.tag.endswith("feed")
+
+    def test_dtd_rejected(self):
+        evil = b'<?xml version="1.0"?><!DOCTYPE lolz [<!ENTITY lol "lol">]><feed>&lol;</feed>'
+        assert reddit._parse_feed_xml(evil) is None
+
+    def test_oversize_rejected(self):
+        big = b"<feed>" + b"x" * (reddit._MAX_FEED_BYTES + 10) + b"</feed>"
+        assert reddit._parse_feed_xml(big) is None

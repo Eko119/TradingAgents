@@ -33,9 +33,15 @@ There is no server surface: no listening sockets, no authn/authz layer, no sessi
 
 ## Dependency posture
 
+> **Correction (session 2):** the original wording below understated risk — a proper `pip-audit` of the exported lock file found **15+ known CVEs** across 13 packages (urllib3 ×6, langgraph, langchain-core, langsmith, aiohttp, idna, lxml, marshmallow, orjson, protobuf, pyasn1, pygments, python-dotenv). All were upgraded in `uv.lock` with the full test suite passing, and the final scan reports **"No known vulnerabilities found."** A non-blocking `dependency-audit` job now runs in CI. Methodology note: `uvx pip-audit` with no arguments audits its own venv and returns a false clean — always audit the exported lock (`uv export … | pip-audit -r`).
+
 - All 120 packages pinned in `uv.lock`; CI installs with `uv sync --locked` so resolution cannot drift.
-- Core dependencies (langchain/langgraph, pandas, requests, rich, typer) are actively maintained mainstream packages.
-- **Recommendation (open):** add automated vulnerability scanning — either GitHub Dependabot (`.github/dependabot.yml`) or `pip-audit` in CI. Not added in this pass because alert routing/ownership is the repo owner's call.
+
+### Session 2 additions
+
+- **bandit** static scan: 0 high-severity; 6 medium triaged — 4 false positives (parameterized SQL with hardcoded table tuple; the literal word "select" in an LLM prompt), 1 accepted (B310: `urlopen` on fixed `https://` templates), 1 fixed:
+- **Fixed — XML entity-expansion exposure** (`tradingagents/dataflows/reddit.py`, bandit B314): the RSS fallback parsed fetched XML with `ET.fromstring`. Now capped at 5 MiB and any feed containing `<!DOCTYPE`/`<!ENTITY` is rejected before parsing (a legitimate Atom feed never carries a DTD). Zero new dependencies; regression-tested.
+- **Web console surface** (new in session 2): binds `127.0.0.1` by default and warns loudly on other binds (no auth layer); URL path components re-validated with `safe_ticker_component` + strict date regex; API keys exposed as booleans only (tested: a set key value never appears in any response byte); `Content-Security-Policy: default-src 'self'`, `X-Content-Type-Options: nosniff`, `frame-ancestors 'none'`; static file allowlist (no directory serving); report/log content HTML-escaped client-side before markdown rendering (LLM/news-derived text is untrusted); 64 KiB POST body cap; runs launched via argument-list `subprocess` (no shell).
 
 ## Remaining risks & recommendations
 

@@ -10,6 +10,30 @@ Breaking changes within the 0.x line are called out explicitly.
 
 ### Added
 
+- **Web Console** (`tradingagents-web` / `make web`): a localhost,
+  zero-dependency dashboard — browse persisted analyses with rendered
+  report sections, launch runs in isolated subprocesses with live status,
+  view the decision log, inspect effective config and per-provider key
+  status (booleans only), export reports as markdown. Includes 27 API and
+  run-manager tests. See `GUI_FEASIBILITY_ANALYSIS.md` and
+  `DESIGN_SYSTEM.md`.
+- **CI dependency audit job** (non-blocking `pip-audit` of the exported
+  lock file) and `workflow_dispatch` trigger.
+- Verification audit documents: `VERIFICATION_AUDIT.md`,
+  `GUI_FEASIBILITY_ANALYSIS.md`, `DESIGN_SYSTEM.md`,
+  `FINAL_PRODUCTION_READINESS_ASSESSMENT.md`.
+
+### Security
+
+- **Upgraded 13 locked dependencies with known CVEs** (urllib3 2.4.0→2.7.0,
+  langgraph 0.4.8→1.1.10, langchain-core→1.4.3, langsmith, aiohttp, idna,
+  lxml, marshmallow, orjson, protobuf, pyasn1, pygments, python-dotenv);
+  `pip-audit` against the locked tree is now clean. Full test suite passes
+  on the upgraded stack.
+- **Hardened the Reddit RSS fallback XML parsing** against DTD
+  entity-expansion attacks: 5 MiB response cap and rejection of any feed
+  carrying `<!DOCTYPE`/`<!ENTITY` (regression-tested).
+
 - **CI pipeline.** GitHub Actions workflow running the full test suite on
   Python 3.10/3.11/3.12 with `uv sync --locked` for every push and PR.
 - **`pytest` as a declared dev dependency.** Previously `uv run pytest`

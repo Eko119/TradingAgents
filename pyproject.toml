@@ -34,12 +34,14 @@ dependencies = [
 
 [project.scripts]
 tradingagents = "cli.main:app"
+tradingagents-web = "webui.server:main"
 
 [tool.setuptools.packages.find]
-include = ["tradingagents*", "cli*"]
+include = ["tradingagents*", "cli*", "webui*"]
 
 [tool.setuptools.package-data]
 cli = ["static/*"]
+webui = ["static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -13,6 +13,9 @@ test-unit:        ## Run fast unit tests only
 run:              ## Launch the interactive CLI
 	uv run tradingagents
 
+web:              ## Launch the local web console (http://127.0.0.1:8321)
+	uv run tradingagents-web
+
 docker:           ## Build and run inside Docker (requires .env)
 	docker compose run --rm tradingagents
 

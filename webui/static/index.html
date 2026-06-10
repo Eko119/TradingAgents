@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>TradingAgents Console</title>
+<link rel="stylesheet" href="/static/app.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%230d1117'/%3E%3Cpath d='M3 11 6.5 7l2.5 2 4-5' stroke='%233fd68f' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<div class="shell">
+  <header class="masthead">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <h1>TradingAgents <span class="brand-sub">Console</span></h1>
+    </div>
+    <nav aria-label="Primary">
+      <ul class="nav">
+        <li><a href="#/dashboard" data-nav="dashboard">Dashboard</a></li>
+        <li><a href="#/results"   data-nav="results">Results</a></li>
+        <li><a href="#/new"       data-nav="new">New&nbsp;Analysis</a></li>
+        <li><a href="#/memory"    data-nav="memory">Decision&nbsp;Log</a></li>
+        <li><a href="#/settings"  data-nav="settings">Settings</a></li>
+      </ul>
+    </nav>
+    <output class="conn" id="conn-status" aria-live="polite"></output>
+  </header>
+
+  <main id="main" class="content" tabindex="-1">
+    <noscript><p class="banner banner-error">The console requires JavaScript (served locally; no external scripts).</p></noscript>
+    <div id="view" aria-live="polite"></div>
+  </main>
+
+  <footer class="footing">
+    <p>Local console · binds 127.0.0.1 · research tool, not financial advice.</p>
+  </footer>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
