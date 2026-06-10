@@ -29,6 +29,7 @@ from tradingagents.graph.analyst_execution import (
     sync_analyst_tracker_from_chunk,
 )
 from tradingagents.default_config import DEFAULT_CONFIG
+from tradingagents.dataflows.utils import safe_ticker_component
 from cli.models import AnalystType
 from cli.utils import *
 from cli.announcements import fetch_announcements, display_announcements
@@ -465,9 +466,13 @@ def update_display(layout, spinner_text=None, stats_handler=None, start_time=Non
 
 def get_user_selections():
     """Get all user selections before starting the analysis display."""
-    # Display ASCII art welcome message
-    with open(Path(__file__).parent / "static" / "welcome.txt", "r", encoding="utf-8") as f:
-        welcome_ascii = f.read()
+    # Display ASCII art welcome message; a broken install (missing package
+    # data) should degrade to a plain banner, not crash before first prompt.
+    try:
+        with open(Path(__file__).parent / "static" / "welcome.txt", "r", encoding="utf-8") as f:
+            welcome_ascii = f.read()
+    except OSError:
+        welcome_ascii = "TradingAgents"
 
     # Create welcome box content
     welcome_content = f"{welcome_ascii}\n"
@@ -1033,8 +1038,12 @@ def run_analysis(checkpoint: bool = False):
     # Track start time for elapsed display
     start_time = time.time()
 
-    # Create result directory
-    results_dir = Path(config["results_dir"]) / selections["ticker"] / selections["analysis_date"]
+    # Create result directory. Both components are re-validated here so a
+    # programmatic caller (or a future prompt refactor) can never feed a
+    # path-traversing value into the results path.
+    safe_ticker = safe_ticker_component(selections["ticker"])
+    safe_date = safe_ticker_component(selections["analysis_date"])
+    results_dir = Path(config["results_dir"]) / safe_ticker / safe_date
     results_dir.mkdir(parents=True, exist_ok=True)
     report_dir = results_dir / "reports"
     report_dir.mkdir(parents=True, exist_ok=True)

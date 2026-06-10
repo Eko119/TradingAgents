@@ -6,6 +6,7 @@ Per-ticker SQLite databases so concurrent tickers don't contend.
 from __future__ import annotations
 
 import hashlib
+import logging
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
@@ -84,7 +85,9 @@ def clear_checkpoint(data_dir: str | Path, ticker: str, date: str) -> None:
         for table in ("writes", "checkpoints"):
             conn.execute(f"DELETE FROM {table} WHERE thread_id = ?", (tid,))
         conn.commit()
-    except sqlite3.OperationalError:
-        pass
+    except sqlite3.OperationalError as e:
+        # Missing tables on a fresh DB are expected; anything else (corruption,
+        # permissions) should at least be visible to the operator.
+        logging.getLogger(__name__).warning("Could not clear checkpoint in %s: %s", db, e)
     finally:
         conn.close()
